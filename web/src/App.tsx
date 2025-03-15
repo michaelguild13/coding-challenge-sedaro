@@ -1,4 +1,5 @@
 import { Flex, Heading, Separator, Table } from '@radix-ui/themes';
+import { getSimulation } from 'Api';
 import { useEffect, useState } from 'react';
 import Plot from 'react-plotly.js';
 import { Link } from 'react-router-dom';
@@ -21,16 +22,13 @@ const App = () => {
 
   useEffect(() => {
     // fetch plot data when the component mounts
-    let canceled = false;
 
     async function fetchData() {
       console.log('calling fetchdata...');
 
       try {
         // data should be populated from a POST call to the simulation server
-        const response = await fetch('http://localhost:8000/simulation');
-        if (canceled) return;
-        const data: DataPoint[] = await response.json();
+        const data = await getSimulation()
         const updatedPositionData: PlottedFrame = {};
         const updatedVelocityData: PlottedFrame = {};
 
@@ -75,10 +73,6 @@ const App = () => {
     }
 
     fetchData();
-
-    return () => {
-      canceled = true;
-    };
   }, []);
 
   return (

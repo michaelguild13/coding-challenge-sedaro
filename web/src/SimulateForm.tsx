@@ -1,39 +1,10 @@
 import { Form, FormField, FormLabel } from '@radix-ui/react-form';
 import { Button, Card, Flex, Heading, Separator, TextField } from '@radix-ui/themes';
+import { DataValue, FormData, postSimulation } from 'Api';
 import _ from 'lodash';
 import React, { useCallback, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Routes } from 'routes';
-
-type FormValue = number | '';
-interface FormData {
-  Body1: {
-    position: {
-      x: FormValue;
-      y: FormValue;
-      z: FormValue;
-    }
-    velocity: {
-      x: FormValue;
-      y: FormValue;
-      z: FormValue;
-    }
-    mass: FormValue;
-  };
-  Body2: {
-    position: {
-      x: FormValue;
-      y: FormValue;
-      z: FormValue;
-    }
-    velocity: {
-      x: FormValue;
-      y: FormValue;
-      z: FormValue;
-    }
-    mass: FormValue;
-  };
-}
 
 const SimulateForm: React.FC = () => {
   const navigate = useNavigate();
@@ -45,7 +16,7 @@ const SimulateForm: React.FC = () => {
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    let newValue: FormValue = value === '' ? '' : parseFloat(value);
+    let newValue: DataValue = value === '' ? '' : parseFloat(value);
     setFormData((prev) => _.set({ ...prev }, name, newValue));
   }, []);
 
@@ -53,16 +24,7 @@ const SimulateForm: React.FC = () => {
     async (e: React.FormEvent) => {
       e.preventDefault();
       try {
-        const response = await fetch('http://localhost:8000/simulation', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(formData),
-        });
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
+        await postSimulation(formData)
         navigate(Routes.SIMULATION);
       } catch (error) {
         console.error('Error:', error);
