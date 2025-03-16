@@ -18,7 +18,7 @@ export interface FormData {
 // TODO: Define Stronger Typing
 type AgentData = Record<string, Record<string, number>>;
 type DataFrame = Record<string, AgentData>;
-type DataPoint = [number, number, DataFrame];
+export type DataPoint = [number, number, DataFrame];
 
 const fetchApi = async (url: string, options?: RequestInit) => {
   try {

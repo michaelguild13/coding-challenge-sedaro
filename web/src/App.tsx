@@ -1,5 +1,6 @@
 import { Flex, Heading, Separator, Table } from '@radix-ui/themes';
 import { getSimulation } from 'Api';
+import { useSimulationContext } from 'conttext/Simulation';
 import { useEffect, useState } from 'react';
 import Plot from 'react-plotly.js';
 import { Link } from 'react-router-dom';
@@ -15,65 +16,9 @@ type PlottedAgentData = Record<string, number[]>;
 type PlottedFrame = Record<string, PlottedAgentData>;
 
 const App = () => {
-  // Store plot data in state.
-  const [positionData, setPositionData] = useState<PlottedAgentData[]>([]);
-  const [velocityData, setVelocityData] = useState<PlottedAgentData[]>([]);
-  const [initialState, setInitialState] = useState<DataFrame>({});
-
-  useEffect(() => {
-    // fetch plot data when the component mounts
-
-    async function fetchData() {
-      console.log('calling fetchdata...');
-
-      try {
-        // data should be populated from a POST call to the simulation server
-        const data = await getSimulation()
-        const updatedPositionData: PlottedFrame = {};
-        const updatedVelocityData: PlottedFrame = {};
-
-        // NOTE: Uncomment to see the raw data in the console
-        // console.log('Data:', data);
-
-        setInitialState(data[0][2]);
-
-        const baseData = () => ({
-          x: [],
-          y: [],
-          z: [],
-          type: 'scatter3d',
-          mode: 'lines+markers',
-          marker: { size: 4 },
-          line: { width: 2 },
-        });
-
-        data.forEach(([t0, t1, frame]) => {
-          for (let [agentId, val] of Object.entries(frame)) {
-              if (agentId == "time" || agentId == "timeStep") {
-                continue;
-              }
-              let {position, velocity} = val;
-              updatedPositionData[agentId] = updatedPositionData[agentId] || baseData();
-              updatedPositionData[agentId].x.push(position.x);
-              updatedPositionData[agentId].y.push(position.y);
-              updatedPositionData[agentId].z.push(position.z);
-
-              updatedVelocityData[agentId] = updatedVelocityData[agentId] || baseData();
-              updatedVelocityData[agentId].x.push(velocity.x);
-              updatedVelocityData[agentId].y.push(velocity.y);
-              updatedVelocityData[agentId].z.push(velocity.z);
-          }
-        });
-        setPositionData(Object.values(updatedPositionData));
-        setVelocityData(Object.values(updatedVelocityData));
-        console.log('Set plot data!');
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    }
-
-    fetchData();
-  }, []);
+  // const [initialState, setInitialState] = useState<DataFrame>({});
+  // setInitialState(data[0][2]);
+  const {positionData, velocityData} =  useSimulationContext()
 
   return (
     <div
@@ -144,7 +89,7 @@ const App = () => {
             </Table.Header>
 
             <Table.Body>
-              {Object.entries(initialState).flatMap(
+              {/* {Object.entries(initialState).flatMap(
                   ([agentId, { position, velocity }]) => {
                     if (position) {
                     return (
@@ -161,7 +106,7 @@ const App = () => {
                     return null;
                   }
                 }
-              )}
+              )} */}
             </Table.Body>
           </Table.Root>
         </Flex>

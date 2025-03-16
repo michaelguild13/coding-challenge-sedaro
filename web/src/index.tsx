@@ -8,6 +8,7 @@ import App from './App';
 import './index.css';
 import NotFound from './NotFound';
 import SimulateForm from './SimulateForm';
+import { SimulationProvider } from './conttext/Simulation';
 
 const router = createBrowserRouter([
   {
@@ -17,7 +18,11 @@ const router = createBrowserRouter([
   },
   {
     path: Routes.SIMULATION,
-    element: <App />,
+    element: (
+      <SimulationProvider>
+        <App />
+      </SimulationProvider>
+    ),
   },
 ]);
 
