@@ -1,5 +1,5 @@
 import { Plot } from "atoms/Plot";
-import { useSimulationContext } from "conttext/Simulation";
+import { useSimulationContext } from "context/Simulation";
 
 export const PlotVelocity = () => {
     const { velocityData } = useSimulationContext();

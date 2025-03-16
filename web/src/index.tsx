@@ -8,8 +8,8 @@ import App from "./App";
 import "./index.css";
 import NotFound from "./NotFound";
 import SimulateForm from "./SimulateForm";
-import Logo from '../public/sedaroLogo.png'
-import { SimulationProvider } from "./conttext/Simulation";
+import Logo from './assets/sedaroLogo.png';
+import { SimulationProvider } from "./context/Simulation";
 
 const router = createBrowserRouter([
   {
