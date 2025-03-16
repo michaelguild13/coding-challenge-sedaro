@@ -18,7 +18,6 @@ export const SimulationProvider = ({ children }: { children: ReactNode }) => {
   const [velocityData, setVelocityData] = useState<PlottedAgentData[]>([]);
 
   const getSimulationData = async () => {
-    console.log("getting simulation data from context");
     try {
       const data = await getSimulation();
       setSimulationData(data);
@@ -28,7 +27,6 @@ export const SimulationProvider = ({ children }: { children: ReactNode }) => {
 
       setPositionData(updatedPositionData);
       setVelocityData(updatedVelocityData);
-      console.log("Set plot data!");
     } catch (error) {
       console.error("Error fetching data:", error);
     }
@@ -41,7 +39,6 @@ export const SimulationProvider = ({ children }: { children: ReactNode }) => {
     getSimulationData();
   }, []);
 
-  console.log({ positionData });
   return (
     <SimulationContext.Provider
       value={{
