@@ -16,9 +16,14 @@ export interface FormData {
 }
 
 // TODO: Define Stronger Typing
-type AgentData = Record<string, Record<string, number>>;
-type DataFrame = Record<string, AgentData>;
+// Input data from the simulation
+export type AgentData = Record<string, Record<string, number>>;
+export type DataFrame = Record<string, AgentData>;
 export type DataPoint = [number, number, DataFrame];
+
+// Output data to the plot
+export type PlottedAgentData = Record<string, number[]>;
+export type PlottedFrame = Record<string, PlottedAgentData>;
 
 const fetchApi = async (url: string, options?: RequestInit) => {
   try {

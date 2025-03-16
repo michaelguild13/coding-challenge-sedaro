@@ -1,6 +1,8 @@
 import { Flex, Heading, Separator, Table } from '@radix-ui/themes';
 import { getSimulation } from 'Api';
 import { useSimulationContext } from 'conttext/Simulation';
+import { PlotPosition } from 'molecules/PlotPosition';
+import { PlotVelocity } from 'molecules/PlotVelocity';
 import { useEffect, useState } from 'react';
 import Plot from 'react-plotly.js';
 import { Link } from 'react-router-dom';
@@ -36,42 +38,8 @@ const App = () => {
         <Link to={Routes.FORM}>Define new simulation parameters</Link>
         <Separator size="4" my="5" />
         <Flex direction="row" width="100%" justify="center">
-          <Plot
-            style={{ width: '45%', height: '100%', margin: '5px' }}
-            data={positionData}
-            layout={{
-              title: 'Position',
-              scene: {
-                xaxis: { title: 'X' },
-                yaxis: { title: 'Y' },
-                zaxis: { title: 'Z' },
-              },
-              autosize: true,
-              dragmode: 'turntable',
-            }}
-            useResizeHandler
-            config={{
-              scrollZoom: true,
-            }}
-          />
-          <Plot
-            style={{ width: '45%', height: '100%', margin: '5px' }}
-            data={velocityData}
-            layout={{
-              title: 'Velocity',
-              scene: {
-                xaxis: { title: 'X' },
-                yaxis: { title: 'Y' },
-                zaxis: { title: 'Z' },
-              },
-              autosize: true,
-              dragmode: 'turntable',
-            }}
-            useResizeHandler
-            config={{
-              scrollZoom: true,
-            }}
-          />
+          <PlotPosition/>
+          <PlotVelocity/>
         </Flex>
         <Flex justify="center" width="100%" m="4">
           <Table.Root
