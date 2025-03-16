@@ -3,5 +3,5 @@ import { useSimulationContext } from "context/Simulation";
 
 export const PlotVelocity = () => {
     const { velocityData } = useSimulationContext();
-    return <Plot title="Position" data={velocityData} />
+    return <Plot title="Velocity" data={velocityData} />
 }

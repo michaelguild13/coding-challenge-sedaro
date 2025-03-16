@@ -30,7 +30,7 @@ const App = () => {
       {/* Flex: https://www.radix-ui.com/themes/docs/components/flex */}
       <Flex direction="column" m="4" width="100%" justify="center" align="center">
         <Heading as="h1" size="8" weight="bold" mb="4">
-          Simulation Data
+          Orbital Simulation
         </Heading>
         <Link to={Routes.FORM}>Define new simulation parameters</Link>
         <Separator size="4" my="5" />

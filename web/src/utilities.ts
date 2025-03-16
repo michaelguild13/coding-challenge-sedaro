@@ -3,7 +3,8 @@ import { DataPoint, PlottedAgentData, PlottedFrame } from "Api";
 export const processPositionVelocityData = (
   data: DataPoint[]
 ): [PlottedAgentData[], PlottedAgentData[]] => {
-  const baseData = () => ({
+  const baseData = (name: string) => ({
+    name,
     x: [],
     y: [],
     z: [],
@@ -20,12 +21,12 @@ export const processPositionVelocityData = (
         continue;
       }
       let { position, velocity } = val;
-      updatedPositionData[agentId] = updatedPositionData[agentId] || baseData();
+      updatedPositionData[agentId] = updatedPositionData[agentId] || baseData(agentId);
       updatedPositionData[agentId].x.push(position.x);
       updatedPositionData[agentId].y.push(position.y);
       updatedPositionData[agentId].z.push(position.z);
 
-      updatedVelocityData[agentId] = updatedVelocityData[agentId] || baseData();
+      updatedVelocityData[agentId] = updatedVelocityData[agentId] || baseData(agentId);
       updatedVelocityData[agentId].x.push(velocity.x);
       updatedVelocityData[agentId].y.push(velocity.y);
       updatedVelocityData[agentId].z.push(velocity.z);
