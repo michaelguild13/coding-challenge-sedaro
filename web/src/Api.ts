@@ -4,10 +4,12 @@ type Vector = {
   y: DataValue;
   z: DataValue;
 };
-type Body = {
+export type Body = {
   position: Vector;
   velocity: Vector;
   mass: DataValue;
+  time?: DataValue;
+  timeStep?: DataValue;
 };
 
 export interface FormData {
@@ -17,8 +19,10 @@ export interface FormData {
 
 // TODO: Define Stronger Typing
 // Input data from the simulation
-export type AgentData = Record<string, Record<string, number>>;
-export type DataFrame = Record<string, AgentData>;
+export type DataFrame = {
+  Body1: Body,
+  Body2: Body
+};
 export type DataPoint = [number, number, DataFrame];
 
 // Output data to the plot

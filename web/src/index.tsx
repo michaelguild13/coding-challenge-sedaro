@@ -1,4 +1,4 @@
-import { Theme } from "@radix-ui/themes";
+import { Box, Flex, Theme } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css";
 import React from "react";
 import ReactDOM from "react-dom/client";
@@ -8,6 +8,7 @@ import App from "./App";
 import "./index.css";
 import NotFound from "./NotFound";
 import SimulateForm from "./SimulateForm";
+import Logo from '../public/sedaroLogo.png'
 import { SimulationProvider } from "./conttext/Simulation";
 
 const router = createBrowserRouter([
@@ -33,6 +34,11 @@ root.render(
       radius="small"
     >
       <SimulationProvider>
+        <Flex style={{ height:'64px',backgroundColor: '#4c68bc', padding: '8px'}}>
+          <Box>
+            <img src={Logo} alt="Sedaro - Orbit Simulator" style={{height: '100%'}}/>
+          </Box>
+        </Flex>
         <RouterProvider router={router} />
       </SimulationProvider>
     </Theme>
