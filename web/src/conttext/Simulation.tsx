@@ -5,10 +5,20 @@ import React, {
   useState,
   ReactNode,
   useEffect,
+  useCallback,
+  useMemo,
 } from "react";
 import { processPositionVelocityData } from "utilities";
 
-const SimulationContext = createContext<any | undefined>(undefined);
+interface SimulationContextType {
+  simulationData: DataPoint[];
+  newSimulation: (newState: any) => void;
+  positionData: PlottedAgentData[];
+  velocityData: PlottedAgentData[];
+  getSimulationData: () => Promise<void>;
+}
+
+const SimulationContext = createContext<SimulationContextType | undefined>(undefined);
 
 export const SimulationProvider = ({ children }: { children: ReactNode }) => {
   // Raw Simulation Data
@@ -17,7 +27,7 @@ export const SimulationProvider = ({ children }: { children: ReactNode }) => {
   const [positionData, setPositionData] = useState<PlottedAgentData[]>([]);
   const [velocityData, setVelocityData] = useState<PlottedAgentData[]>([]);
 
-  const getSimulationData = async () => {
+  const getSimulationData = useCallback(async () => {
     try {
       const data = await getSimulation();
       setSimulationData(data);
@@ -30,25 +40,30 @@ export const SimulationProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error("Error fetching data:", error);
     }
-  };
+  }, []);
 
-  const newSimulation = (newState: any) => {};
+  const newSimulation = useCallback((newState: any) => {
+    // Placeholder for newSimulation logic
+  }, []);
+
+  const contextValue = useMemo(
+    () => ({
+      simulationData,
+      newSimulation,
+      positionData,
+      velocityData,
+      getSimulationData,
+    }),
+    [simulationData, newSimulation, positionData, velocityData, getSimulationData]
+  );
 
   useEffect(() => {
     //TODO: update react version from 18. Due to React 18's Strict Mode, this will only run twice
     getSimulationData();
-  }, []);
+  }, [getSimulationData]);
 
   return (
-    <SimulationContext.Provider
-      value={{
-        simulationData,
-        newSimulation,
-        positionData,
-        velocityData,
-        getSimulationData,
-      }}
-    >
+    <SimulationContext.Provider value={contextValue}>
       {children}
     </SimulationContext.Provider>
   );
