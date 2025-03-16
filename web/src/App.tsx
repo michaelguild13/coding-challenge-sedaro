@@ -1,11 +1,7 @@
 import { Flex, Heading, Separator, Table } from '@radix-ui/themes';
-import { getSimulation } from 'Api';
 import { useSimulationContext } from 'context/Simulation';
-import OrbitalVisualization from 'molecules/OrbitalVisualization';
 import { PlotPosition } from 'molecules/PlotPosition';
 import { PlotVelocity } from 'molecules/PlotVelocity';
-import { useEffect, useState } from 'react';
-import Plot from 'react-plotly.js';
 import { Link } from 'react-router-dom';
 import { Routes } from 'routes';
 
@@ -80,7 +76,6 @@ const App = () => {
           </Table.Root>
         </Flex>
       </Flex>
-      <OrbitalVisualization />
     </div>
   );
 };
