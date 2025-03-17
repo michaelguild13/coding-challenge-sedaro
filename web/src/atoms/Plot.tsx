@@ -1,3 +1,4 @@
+import { Card } from "@radix-ui/themes";
 import Plotly, { PlotParams } from "react-plotly.js";
 
 interface PlotProps extends Omit<PlotParams, "layout" | "data" | "frames"> {
@@ -11,9 +12,9 @@ export const Plot = (
     const layout = {
       title,
       scene: {
-        xaxis: { title: "X Position" },
-        yaxis: { title: "Y Position" },
-        zaxis: { title: "Z Position" },
+        xaxis: { title: 'X Position'},
+        yaxis: { title: 'Y Position'},
+        zaxis: { title: 'Z Position'},
       },
       autosize: true,
       dragmode: "turntable",
@@ -66,18 +67,20 @@ export const Plot = (
         ],
       }),
     };
-    console.log(frames)
-
     return (
+      <Card style={{ width: "100%", height: "100%" }}>
       <Plotly
+        style={{ width: "100%", height: "100%" }}
         layout={layout}
-        data={frames ? undefined : data}
+        data={data}
         frames={frames}
         useResizeHandler
         config={{
           scrollZoom: true,
+          responsive: true,
         }}
       />
+      </Card>
     );
   }
 );
