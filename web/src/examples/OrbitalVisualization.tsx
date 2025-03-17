@@ -1,89 +1,77 @@
-import { Box, Button, Flex} from '@radix-ui/themes';
+import { Box, Button, Card, Flex} from '@radix-ui/themes';
 import { useSimulationContext } from 'context/Simulation';
 import { useState, useEffect } from 'react';
 import Plot from 'react-plotly.js';
 
 
-const calculateMinMax = (data) => {
-  // Calculate bounds for the layout
+const calculateMinMax = ({ body1Positions, body2Positions }) => {
+  const extractAxisValues = (positions, axis) => positions.map(p => p[axis]);
+
   const allXPositions = [
-    ...data.body1Positions.map(p => p.x), 
-    ...data.body2Positions.map(p => p.x)
+    ...extractAxisValues(body1Positions, 'x'),
+    ...extractAxisValues(body2Positions, 'x')
   ];
   const allYPositions = [
-    ...data.body1Positions.map(p => p.y), 
-    ...data.body2Positions.map(p => p.y)
+    ...extractAxisValues(body1Positions, 'y'),
+    ...extractAxisValues(body2Positions, 'y')
   ];
   const allZPositions = [
-    ...data.body1Positions.map(p => p.z), 
-    ...data.body2Positions.map(p => p.z)
+    ...extractAxisValues(body1Positions, 'z'),
+    ...extractAxisValues(body2Positions, 'z')
   ];
 
-  const minX = Math.min(...allXPositions);
-  const maxX = Math.max(...allXPositions);
-  const minY = Math.min(...allYPositions);
-  const maxY = Math.max(...allYPositions);
-  const minZ = Math.min(...allZPositions);
-  const maxZ = Math.max(...allZPositions);
-  return { minX, maxX, minY, maxY, minZ, maxZ };
-}
+  const calculateBounds = (values) => ({
+    min: Math.min(...values),
+    max: Math.max(...values)
+  });
+
+  const xBounds = calculateBounds(allXPositions);
+  const yBounds = calculateBounds(allYPositions);
+  const zBounds = calculateBounds(allZPositions);
+
+  return {
+    minX: xBounds.min,
+    maxX: xBounds.max,
+    minY: yBounds.min,
+    maxY: yBounds.max,
+    minZ: zBounds.min,
+    maxZ: zBounds.max
+  };
+};
 
 const extractData = (data) => {
-  const body1Positions = [];
-  const body1Velocities = [];
-  const body2Positions = [];
-  const body2Velocities = [];
-  const timePoints: number[] = [];
-  
-  data.forEach(timePoint => {
-    const time = timePoint[1]; // Trust the second time point
-    timePoints.push(time);
-    const bodiesData = timePoint[2];
-    
-    if (bodiesData.Body1) {
-      const position = bodiesData.Body1.position;
-      body1Positions.push({
-        time,
-        x: position.x,
-        y: position.y,
-        z: position.z
-      });
-      
-      const velocity = bodiesData.Body1.velocity;
-      body1Velocities.push({
-        time,
-        x: velocity.x,
-        y: velocity.y,
-        z: velocity.z
-      });
-    }
-    
-    if (bodiesData.Body2) {
-      const position = bodiesData.Body2.position;
-      body2Positions.push({
-        time,
-        x: position.x,
-        y: position.y,
-        z: position.z
-      });
-      
-      const velocity = bodiesData.Body2.velocity;
-      body2Velocities.push({
-        time,
-        x: velocity.x,
-        y: velocity.y,
-        z: velocity.z
-      });
-    }
-  });
-  
-  return { 
-    body1Positions, 
-    body1Velocities, 
-    body2Positions, 
-    body2Velocities,
-    timePoints
+  const result = {
+    body1Positions: [],
+    body1Velocities: [],
+    body2Positions: [],
+    body2Velocities: [],
+    timePoints: []
   };
+
+  data.forEach(([_, time, bodiesData]) => {
+    result.timePoints.push(time);
+
+    Object.entries(bodiesData).forEach(([bodyKey, bodyData]) => {
+      const lowerKey = bodyKey.toLowerCase();
+      if (bodyData.position && bodyData.velocity) {
+        result[`${lowerKey}Positions`].push({
+          time,
+          x: bodyData.position.x,
+          y: bodyData.position.y,
+          z: bodyData.position.z
+        });
+
+        result[`${lowerKey}Velocities`].push({
+          time,
+          x: bodyData.velocity.x,
+          y: bodyData.velocity.y,
+          z: bodyData.velocity.z
+        });
+      }
+    });
+  });
+
+  return result;
 };
 
 const preparePlotData = ({extractedData, currentTimeIndex, showVelocityVectors, velocityScale}) => {
@@ -151,7 +139,6 @@ const preparePlotData = ({extractedData, currentTimeIndex, showVelocityVectors, 
       z: [position.z],
       marker: {
         size: 10,
-        color: 'darkblue',
         symbol: 'circle',
         opacity: 0.8
       }
@@ -169,7 +156,6 @@ const preparePlotData = ({extractedData, currentTimeIndex, showVelocityVectors, 
       z: [position.z],
       marker: {
         size: 10,
-        color: 'darkred',
         symbol: 'circle',
         opacity: 0.8
       }
@@ -193,12 +179,10 @@ const preparePlotData = ({extractedData, currentTimeIndex, showVelocityVectors, 
         y: [position.y, position.y + velocity.y * velocityScale],
         z: [position.z, position.z + velocity.z * velocityScale],
         line: {
-          color: 'cyan',
           width: 5
         },
         marker: {
           size: 3,
-          color: 'cyan',
           symbol: 'diamond'
         }
       });
@@ -217,12 +201,10 @@ const preparePlotData = ({extractedData, currentTimeIndex, showVelocityVectors, 
         y: [position.y, position.y + velocity.y * velocityScale],
         z: [position.z, position.z + velocity.z * velocityScale],
         line: {
-          color: 'orange',
           width: 5
         },
         marker: {
           size: 3,
-          color: 'orange',
           symbol: 'diamond'
         }
       });
@@ -329,6 +311,7 @@ const OrbitalVisualization = () => {
   };
 
   return (
+    <Card>
     <Flex direction="column" align="center">
       <Flex direction="row" align="center">
         <Button onClick={handlePlay}>
@@ -346,11 +329,12 @@ const OrbitalVisualization = () => {
           data={data}
           layout={layout}
           config={{ responsive: true }}
-          style={{ width: '500px', height: '500px' }}
+          style={{ width: '100%', height: '100%' }}
         />
       </Box>
 
     </Flex>
+    </Card>
   );
 };
 
