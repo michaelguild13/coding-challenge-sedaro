@@ -20,7 +20,7 @@ export const PlotSimple = ({ data, title }: PlotProps) => {
       },
     },
     autosize: true,
-    dragmode: "turntable",
+    dragmode: "turntable" as const,
     margin: { l: 0, r: 0, b: 0, t: 50 },
     legend: {
       x: 0,
@@ -32,7 +32,7 @@ export const PlotSimple = ({ data, title }: PlotProps) => {
       <Plotly
         style={{ width: "100%", height: "100%" }}
         layout={layout}
-        data={data}
+        data={data || []}
         config={{
           scrollZoom: true,
           responsive: true,

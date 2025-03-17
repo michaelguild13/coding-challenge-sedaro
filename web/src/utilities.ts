@@ -1,12 +1,12 @@
 import { DataPoint, PlottedAgentData, PlottedFrame, Vector } from "Api";
 
 export type SimulationData = {
-  body1Positions: any[];
-  body1Velocities: any[];
-  body2Positions: any[];
-  body2Velocities: any[];
-  timePoints: any[];
-}
+  body1Positions: Vector[];
+  body1Velocities: Vector[];
+  body2Positions: Vector[];
+  body2Velocities: Vector[];
+  timePoints: number[];
+};
 
 export const getPlotData = ({ 
   body1Positions, 
@@ -19,7 +19,7 @@ export const getPlotData = ({
   body1Velocities: Vector[], 
   body2Velocities: Vector[] 
 }) => {
-  const createTrace = (data: Vector[], name: string) => ({
+  const createTrace = (data: Vector[], name: string): Partial<Plotly.PlotData> => ({
     type: 'scatter3d',
     mode: 'lines+markers',
     name,
@@ -31,8 +31,7 @@ export const getPlotData = ({
       opacity: 0.5
     },
     line: {
-      width: 2,
-      opacity: 0.5
+      width: 2
     }
   });
   
@@ -86,9 +85,9 @@ export const getCurrentPlotData = ({data, currentTimeIndex, velocityScale = 500}
       type: 'scatter3d',
       mode: 'lines+markers',
       name: `${bodyName} Velocity`,
-      x: [position.x, position.x + velocity.x * velocityScale],
-      y: [position.y, position.y + velocity.y * velocityScale],
-      z: [position.z, position.z + velocity.z * velocityScale],
+      x: [Number(position.x), Number(position.x) + Number(velocity.x) * velocityScale],
+      y: [Number(position.y), Number(position.y) + Number(velocity.y) * velocityScale],
+      z: [Number(position.z), Number(position.z) + Number(velocity.z) * velocityScale],
       line: {
         width: 5
       },
@@ -182,9 +181,9 @@ export const calculateMinMax = ({ body1Positions, body2Positions }: { body1Posit
     max: Math.max(...values)
   });
 
-  const xBounds = calculateBounds(allXPositions);
-  const yBounds = calculateBounds(allYPositions);
-  const zBounds = calculateBounds(allZPositions);
+  const xBounds = calculateBounds(allXPositions.filter(value => typeof value === 'number'));
+  const yBounds = calculateBounds(allYPositions.filter(value => typeof value === 'number'));
+  const zBounds = calculateBounds(allZPositions.filter(value => typeof value === 'number'));
 
   return {
     minX: xBounds.min,

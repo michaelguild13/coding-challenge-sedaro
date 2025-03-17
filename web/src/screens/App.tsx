@@ -1,7 +1,6 @@
 import { Flex, Separator } from '@radix-ui/themes';
-import OrbitalVisualization from 'examples/OrbitalVisualization';
+import { OrbitalVisualization } from 'molecules/OrbitalVisualization';
 import { PlotPosition } from 'molecules/PlotPosition';
-import { PlotPositionVelocityPlayer } from 'molecules/PlotPositionVelocityPlayer';
 import { PlotVelocity } from 'molecules/PlotVelocity';
 import { Link } from 'react-router-dom';
 import { Routes } from 'routes';
@@ -21,7 +20,6 @@ const App = () => {
         <Flex direction="row" width="100%" justify="center">
           <PlotPosition/>
           <PlotVelocity/>
-          {/* <PlotPositionVelocityPlayer /> */}
           <OrbitalVisualization />          
         </Flex>
       </Flex>

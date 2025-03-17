@@ -34,15 +34,6 @@ const SimulateForm: React.FC = () => {
   );
 
   return (
-    <div
-      style={{
-        position: 'absolute',
-        top: '5%',
-        left: 'calc(50% - 200px)',
-        overflow: 'scroll',
-      }}
-    >
-      {/* Card: https://www.radix-ui.com/themes/docs/components/card */}
       <Card
         style={{
           width: '400px',
@@ -230,7 +221,6 @@ const SimulateForm: React.FC = () => {
           </Flex>
         </Form>
       </Card>
-    </div>
   );
 };
 

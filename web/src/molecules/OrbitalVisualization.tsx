@@ -8,7 +8,7 @@ import { useState, useEffect } from "react";
 import Plot from "react-plotly.js";
 import { calculateMinMax } from "utilities";
 
-const OrbitalVisualization = () => {
+export const OrbitalVisualization = () => {
   const { simulationData, plotData, currentPlotData } = useSimulationContext();
   const [data, setData] = useState<Array<any>>([]);
   const [layout, setLayout] = useState({});
@@ -113,5 +113,3 @@ const OrbitalVisualization = () => {
     </Card>
   );
 };
-
-export default OrbitalVisualization;
