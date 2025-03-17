@@ -1,5 +1,5 @@
 export type DataValue = number | "";
-type Vector = {
+export type Vector = {
   x: DataValue;
   y: DataValue;
   z: DataValue;

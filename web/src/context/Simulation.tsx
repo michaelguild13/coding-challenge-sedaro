@@ -8,7 +8,8 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
-import { processPositionVelocityData } from "utilities";
+import { processData, processFramesData } from "utilities";
+import { Frame as PlotlyFrame } from "plotly.js";
 
 interface SimulationContextType {
   simulationData: DataPoint[];
@@ -16,6 +17,8 @@ interface SimulationContextType {
   positionData: PlottedAgentData[];
   velocityData: PlottedAgentData[];
   getSimulationData: () => Promise<void>;
+  positionVelocityFrames: PlotlyFrame[];
+  framesData: PlottedAgentData[];
 }
 
 const SimulationContext = createContext<SimulationContextType | undefined>(undefined);
@@ -26,17 +29,21 @@ export const SimulationProvider = ({ children }: { children: ReactNode }) => {
   // Plot Data
   const [positionData, setPositionData] = useState<PlottedAgentData[]>([]);
   const [velocityData, setVelocityData] = useState<PlottedAgentData[]>([]);
+  const [positionVelocityFrames, setPositionVelocityFrames] = useState([]);
+  const [framesData, setFramesData] = useState<PlottedAgentData[] | undefined>(undefined);
 
   const getSimulationData = useCallback(async () => {
     try {
       const data = await getSimulation();
       setSimulationData(data);
 
-      const [updatedPositionData, updatedVelocityData] =
-        processPositionVelocityData(data);
-
+      const [updatedPositionData, updatedVelocityData, updatedPositionVelocityFrames] =
+        processData(data);
+        
+      setFramesData(processFramesData(data));
       setPositionData(updatedPositionData);
       setVelocityData(updatedVelocityData);
+      setPositionVelocityFrames(updatedPositionVelocityFrames);
     } catch (error) {
       console.error("Error fetching data:", error);
     }
@@ -53,8 +60,10 @@ export const SimulationProvider = ({ children }: { children: ReactNode }) => {
       positionData,
       velocityData,
       getSimulationData,
+      positionVelocityFrames,
+      framesData,
     }),
-    [simulationData, newSimulation, positionData, velocityData, getSimulationData]
+    [simulationData, newSimulation, positionData, velocityData, getSimulationData, positionVelocityFrames, framesData]
   );
 
   useEffect(() => {
