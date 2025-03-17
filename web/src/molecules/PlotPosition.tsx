@@ -1,7 +1,9 @@
-import { Plot } from "atoms/Plot"
+import { PlotSimple } from "atoms/PlotSimple"
 import { useSimulationContext } from "context/Simulation";
 
 export const PlotPosition = () => {
-    const { positionData } = useSimulationContext();
-    return <Plot title="Position" data={positionData} />
+    const { plotData } = useSimulationContext();
+    if ( !plotData ) return <></>
+    const {body1Positions, body2Positions} = plotData
+    return <PlotSimple title="Position" data={[body1Positions, body2Positions]} />
 }
