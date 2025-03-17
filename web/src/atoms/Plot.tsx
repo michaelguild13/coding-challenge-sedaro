@@ -18,6 +18,11 @@ export const Plot = (
       },
       autosize: true,
       dragmode: "turntable",
+      margin: { l: 0, r: 0, b: 0, t: 50 },
+      legend: {
+        x: 0,
+        y: 1
+      },
       ...(frames && {
         updatemenus: [
           {
@@ -68,7 +73,7 @@ export const Plot = (
       }),
     };
     return (
-      <Card style={{ width: "100%", height: "100%" }}>
+      <Card>
       <Plotly
         style={{ width: "100%", height: "100%" }}
         layout={layout}
