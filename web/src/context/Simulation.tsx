@@ -57,12 +57,25 @@ export const SimulationProvider = ({ children }: { children: ReactNode }) => {
       clearInterval(playInterval);
       setPlayInterval(null);
     } else {
+      // Immediately advance to the next frame for instant feedback
+      if (simulationData?.timePoints) {
+        setCurrentTimeIndex((prev) => 
+          (prev + 1) % simulationData.timePoints.length
+        );
+      }
+      
+      // Then set up the interval for continued playback
       const interval = setInterval(() => {
-        setCurrentTimeIndex((prev) => simulationData?.timePoints ? (prev + 1) % simulationData.timePoints.length : prev); // loop back
+        setCurrentTimeIndex((prev) => 
+          simulationData?.timePoints 
+            ? (prev + 1) % simulationData.timePoints.length 
+            : prev
+        );
       }, 100);
+      
       setPlayInterval(interval);
     }
-  }, [playInterval]);
+  }, [playInterval, simulationData]);
 
   const isPlaying = !!playInterval
 
