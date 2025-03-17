@@ -1,5 +1,5 @@
 import { DataPoint, getSimulation, PlottedAgentData } from "Api";
-import React, {
+import {
   createContext,
   useContext,
   useState,
@@ -8,42 +8,41 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
-import { processData, processFramesData } from "utilities";
-import { Frame as PlotlyFrame } from "plotly.js";
+import { getCurrentPlotData, getPlotData, processData, SimulationData } from "utilities";
+
 
 interface SimulationContextType {
-  simulationData: DataPoint[];
   newSimulation: (newState: any) => void;
-  positionData: PlottedAgentData[];
-  velocityData: PlottedAgentData[];
   getSimulationData: () => Promise<void>;
-  positionVelocityFrames: PlotlyFrame[];
-  framesData: PlottedAgentData[];
+  togglePlay: () => void;
+  reset: () => void;
+  next: () => void;
+  previous:() => void;
+  isPlaying: boolean
+  simulationData: SimulationData | undefined;
+  plotData: ReturnType<typeof getPlotData> | undefined;
+  currentPlotData: ReturnType<typeof getCurrentPlotData> | null;
 }
 
-const SimulationContext = createContext<SimulationContextType | undefined>(undefined);
+const SimulationContext = createContext<SimulationContextType | undefined>(
+  undefined
+);
 
 export const SimulationProvider = ({ children }: { children: ReactNode }) => {
-  // Raw Simulation Data
-  const [simulationData, setSimulationData] = useState<DataPoint[]>([]);
-  // Plot Data
-  const [positionData, setPositionData] = useState<PlottedAgentData[]>([]);
-  const [velocityData, setVelocityData] = useState<PlottedAgentData[]>([]);
-  const [positionVelocityFrames, setPositionVelocityFrames] = useState([]);
-  const [framesData, setFramesData] = useState<PlottedAgentData[] | undefined>(undefined);
-
+  const [simulationData, setSimulationData] = useState<SimulationData | undefined>(undefined);
+  const [plotData, setPlotData] = useState<ReturnType<typeof getPlotData> | undefined>(undefined)
+  // play state
+  const [currentTimeIndex, setCurrentTimeIndex] = useState(0);
+  const [currentPlotData, setCurrentPlotData] = useState<ReturnType<typeof getCurrentPlotData> | null>(null);
+  const [playInterval, setPlayInterval] = useState<number | null>(null);
+  
   const getSimulationData = useCallback(async () => {
     try {
       const data = await getSimulation();
-      setSimulationData(data);
-
-      const [updatedPositionData, updatedVelocityData, updatedPositionVelocityFrames] =
-        processData(data);
-        
-      setFramesData(processFramesData(data));
-      setPositionData(updatedPositionData);
-      setVelocityData(updatedVelocityData);
-      setPositionVelocityFrames(updatedPositionVelocityFrames);
+      const processedData = processData(data);
+      setSimulationData(processedData);
+      setPlotData(getPlotData(processedData))
+      setCurrentPlotData(getCurrentPlotData({data: processedData, currentTimeIndex}))
     } catch (error) {
       console.error("Error fetching data:", error);
     }
@@ -53,23 +52,80 @@ export const SimulationProvider = ({ children }: { children: ReactNode }) => {
     // Placeholder for newSimulation logic
   }, []);
 
+  const togglePlay = useCallback(() => {
+    if (playInterval) {
+      clearInterval(playInterval);
+      setPlayInterval(null);
+    } else {
+      const interval = setInterval(() => {
+        setCurrentTimeIndex((prev) => simulationData?.timePoints ? (prev + 1) % simulationData.timePoints.length : prev); // loop back
+      }, 100);
+      setPlayInterval(interval);
+    }
+  }, [playInterval]);
+
+  const isPlaying = !!playInterval
+
+  const reset = useCallback(() => {
+      setCurrentTimeIndex(0);
+  }, [])
+
+  const next = useCallback(() => {
+    if (simulationData?.timePoints) {
+      setCurrentTimeIndex((prev) => (prev + 1) % simulationData.timePoints.length);
+    }
+  }, [simulationData]);
+
+  const previous = useCallback(() => {
+    if (simulationData?.timePoints) {
+      setCurrentTimeIndex((prev) => (prev > 0 ? prev - 1 : simulationData.timePoints.length - 1));
+    }
+  }, [simulationData]);
+
   const contextValue = useMemo(
     () => ({
       simulationData,
       newSimulation,
-      positionData,
-      velocityData,
       getSimulationData,
-      positionVelocityFrames,
-      framesData,
+      plotData,
+      currentPlotData,
+      isPlaying,
+      togglePlay,
+      reset,
+      next,
+      previous
     }),
-    [simulationData, newSimulation, positionData, velocityData, getSimulationData, positionVelocityFrames, framesData]
+    [
+      simulationData,
+      newSimulation,
+      getSimulationData,
+      plotData,
+      currentPlotData,
+      isPlaying,
+      togglePlay,
+      reset,
+      next,
+      previous
+    ]
   );
 
   useEffect(() => {
     //TODO: update react version from 18. Due to React 18's Strict Mode, this will only run twice
     getSimulationData();
-  }, [getSimulationData]);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (playInterval) {
+        clearInterval(playInterval);
+      }
+    };
+  }, [playInterval]);
+  
+  useEffect(() => {
+    if (!simulationData) return
+    setCurrentPlotData(getCurrentPlotData({data: simulationData, currentTimeIndex}))
+  }, [currentTimeIndex])
 
   return (
     <SimulationContext.Provider value={contextValue}>

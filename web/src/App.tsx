@@ -19,9 +19,9 @@ const App = () => {
         <Link to={Routes.FORM}>Define new simulation parameters</Link>
         <Separator size="4" my="5" />
         <Flex direction="row" width="100%" justify="center">
-          <PlotPosition/>
-          <PlotVelocity/>
-          <PlotPositionVelocityPlayer />
+          {/* <PlotPosition/> */}
+          {/* <PlotVelocity/> */}
+          {/* <PlotPositionVelocityPlayer /> */}
           <OrbitalVisualization />          
         </Flex>
       </Flex>

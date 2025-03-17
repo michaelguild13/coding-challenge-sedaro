@@ -1,86 +1,197 @@
 import { DataPoint, PlottedAgentData, PlottedFrame, Vector } from "Api";
 
-const baseFrame = (name: string) => ({
-  name,
-  data: [],
-  traces: [],
-});
+export type SimulationData = {
+  body1Positions: any[];
+  body1Velocities: any[];
+  body2Positions: any[];
+  body2Velocities: any[];
+  timePoints: any[];
+}
 
-const baseData = (name: string, vector?: Vector) => {
-  return {
+export const getPlotData = ({ 
+  body1Positions, 
+  body2Positions, 
+  body1Velocities, 
+  body2Velocities,
+}: { 
+  body1Positions: Vector[], 
+  body2Positions: Vector[], 
+  body1Velocities: Vector[], 
+  body2Velocities: Vector[] 
+}) => {
+  const createTrace = (data: Vector[], name: string) => ({
+    type: 'scatter3d',
+    mode: 'lines+markers',
     name,
-    x: [vector?.x],
-    y: [vector?.y],
-    z: [vector?.z],
-    type: "scatter3d",
-    mode: "lines+markers",
-    marker: { size: 3 },
-    line: { width: 5 },
+    x: data.map(p => p.x),
+    y: data.map(p => p.y),
+    z: data.map(p => p.z),
+    marker: {
+      size: 5,
+      opacity: 0.5
+    },
+    line: {
+      width: 2,
+      opacity: 0.5
+    }
+  });
+  
+  return {
+    body1Positions: createTrace(body1Positions, 'Body 1 Orbit'),
+    body1Velocities: createTrace(body1Velocities, 'Body 1 Velocity'),
+    body2Positions: createTrace(body2Positions, 'Body 2 Orbit'),
+    body2Velocities: createTrace(body2Velocities, 'Body 2 Velocity')
   };
 };
 
-export const processFramesData = (
-  data: DataPoint[]
-): [PlottedAgentData[], PlottedAgentData[]] => {
-  const frameData: PlottedFrame[] = []
-  const initData = []
-  data.forEach(([timeStart, timeEnd, frames]: [number, number, Record<string, { position: Vector; velocity: Vector }>], index) => {
-    // if(index > 10) return
-    const newFrame= baseFrame(`frame-${index}`);
-    const frameKeys = Object.keys(frames); // Body1, Body2
-     
-    frameKeys.forEach((frameKey) => {
-      const { position, velocity } = frames[frameKey] as { position: Vector; velocity: Vector };
-      newFrame.data.push(baseData(`${frameKey} position`, position));
-      newFrame.data.push(baseData(`${frameKey} velocity`, velocity));
-      if( frameKey === "Body1") {
-        newFrame.traces.push(0)
-        newFrame.traces.push(1)
-      }
-      if( frameKey === "Body2") {
-        newFrame.traces.push(2)
-        newFrame.traces.push(3)
-      }
-      // Only add initial data once
-      if (index === 0) {
-        initData.push(baseData(`${frameKey} position`, position));
-        initData.push(baseData(`${frameKey} velocity`, velocity));
-      }
-    });
+export const getCurrentPlotData = ({data, currentTimeIndex, velocityScale = 500}: { data: SimulationData, currentTimeIndex: number, velocityScale?: number }) => {
+  const { 
+    body1Positions, 
+    body2Positions, 
+    body1Velocities, 
+    body2Velocities,
+    timePoints
+  } = data;
+  
+  const timeIndex = currentTimeIndex % timePoints.length;
+  
+  // Helper to create current position marker
+  const createPositionMarker = (positions: Vector[], bodyName: string) => {
+    if (positions.length <= timeIndex) return null;
     
-    frameData.push(newFrame);
-  });
-  console.log(frameData);
-  return { data: initData, frames: frameData}
+    const position = positions[timeIndex];
+    return {
+      type: 'scatter3d',
+      mode: 'markers',
+      name: `${bodyName} Current`,
+      x: [position.x],
+      y: [position.y],
+      z: [position.z],
+      marker: {
+        size: 10,
+        symbol: 'circle',
+        opacity: 0.8
+      }
+    };
+  };
+  
+  // Helper to create velocity vector
+  const createVelocityVector = (positions: Vector[], velocities: Vector[], bodyName: string) => {
+    if (positions.length <= timeIndex || velocities.length <= timeIndex) return null;
+    
+    const position = positions[timeIndex];
+    const velocity = velocities[timeIndex];
+    
+    return {
+      type: 'scatter3d',
+      mode: 'lines+markers',
+      name: `${bodyName} Velocity`,
+      x: [position.x, position.x + velocity.x * velocityScale],
+      y: [position.y, position.y + velocity.y * velocityScale],
+      z: [position.z, position.z + velocity.z * velocityScale],
+      line: {
+        width: 5
+      },
+      marker: {
+        size: 3,
+        symbol: 'diamond'
+      }
+    };
+  };
+  
+  // Create current position markers
+  const currentPositions = [
+    createPositionMarker(body1Positions, 'Body1'),
+    createPositionMarker(body2Positions, 'Body2')
+  ].filter(Boolean);
+  
+  // Create velocity vectors if enabled
+  const currentVelocities = [
+    createVelocityVector(body1Positions, body1Velocities, 'Body1'),
+    createVelocityVector(body2Positions, body2Velocities, 'Body2')
+  ].filter(Boolean);
+  
+  return {
+    currentPositions,
+    currentVelocities
+  }
 };
 
 export const processData = (
   data: DataPoint[]
-): [PlottedAgentData[], PlottedAgentData[]] => {
-  const updatedPositionData: PlottedFrame = {};
-  const updatedVelocityData: PlottedFrame = {};
+) => {
+  const result: {
+    body1Positions: Vector[];
+    body1Velocities: Vector[];
+    body2Positions: Vector[];
+    body2Velocities: Vector[];
+    timePoints: number[];
+    [key: string]: any;
+  } = {
+    body1Positions: [],
+    body1Velocities: [],
+    body2Positions: [],
+    body2Velocities: [],
+    timePoints: []
+  };
 
-  data.forEach(([timeStart, timeEnd, frame]) => {
-    for (let [agentId, val] of Object.entries(frame)) {
-      if (agentId == "time" || agentId == "timeStep") {
-        continue;
+  data.forEach(([_, time, bodiesData]) => {
+    result.timePoints.push(time);
+
+    Object.entries(bodiesData).forEach(([bodyKey, bodyData]) => {
+      const lowerKey = bodyKey.toLowerCase();
+      if (bodyData.position && bodyData.velocity) {
+        result[`${lowerKey}Positions`].push({
+          time,
+          x: bodyData.position.x,
+          y: bodyData.position.y,
+          z: bodyData.position.z
+        });
+
+        result[`${lowerKey}Velocities`].push({
+          time,
+          x: bodyData.velocity.x,
+          y: bodyData.velocity.y,
+          z: bodyData.velocity.z
+        });
       }
-      let { position, velocity } = val;
-      updatedPositionData[agentId] =
-        updatedPositionData[agentId] || baseData(agentId);
-      updatedPositionData[agentId].x.push(position.x);
-      updatedPositionData[agentId].y.push(position.y);
-      updatedPositionData[agentId].z.push(position.z);
-
-      updatedVelocityData[agentId] =
-        updatedVelocityData[agentId] || baseData(agentId);
-      updatedVelocityData[agentId].x.push(velocity.x);
-      updatedVelocityData[agentId].y.push(velocity.y);
-      updatedVelocityData[agentId].z.push(velocity.z);
-    }
+    });
   });
-  return [
-    Object.values(updatedPositionData),
-    Object.values(updatedVelocityData),
+
+  return result;
+};
+
+export const calculateMinMax = ({ body1Positions, body2Positions }: { body1Positions: Vector[], body2Positions: Vector[] }) => {
+  const extractAxisValues = (positions: Vector[], axis: keyof Vector) => positions.map(p => p[axis]);
+
+  const allXPositions = [
+    ...extractAxisValues(body1Positions, 'x'),
+    ...extractAxisValues(body2Positions, 'x')
   ];
+  const allYPositions = [
+    ...extractAxisValues(body1Positions, 'y'),
+    ...extractAxisValues(body2Positions, 'y')
+  ];
+  const allZPositions = [
+    ...extractAxisValues(body1Positions, 'z'),
+    ...extractAxisValues(body2Positions, 'z')
+  ];
+
+  const calculateBounds = (values: number[]) => ({
+    min: Math.min(...values),
+    max: Math.max(...values)
+  });
+
+  const xBounds = calculateBounds(allXPositions);
+  const yBounds = calculateBounds(allYPositions);
+  const zBounds = calculateBounds(allZPositions);
+
+  return {
+    minX: xBounds.min,
+    maxX: xBounds.max,
+    minY: yBounds.min,
+    maxY: yBounds.max,
+    minZ: zBounds.min,
+    maxZ: zBounds.max
+  };
 };

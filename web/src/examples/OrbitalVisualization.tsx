@@ -2,248 +2,26 @@ import { Box, Button, Card, Flex} from '@radix-ui/themes';
 import { useSimulationContext } from 'context/Simulation';
 import { useState, useEffect } from 'react';
 import Plot from 'react-plotly.js';
-
-
-const calculateMinMax = ({ body1Positions, body2Positions }) => {
-  const extractAxisValues = (positions, axis) => positions.map(p => p[axis]);
-
-  const allXPositions = [
-    ...extractAxisValues(body1Positions, 'x'),
-    ...extractAxisValues(body2Positions, 'x')
-  ];
-  const allYPositions = [
-    ...extractAxisValues(body1Positions, 'y'),
-    ...extractAxisValues(body2Positions, 'y')
-  ];
-  const allZPositions = [
-    ...extractAxisValues(body1Positions, 'z'),
-    ...extractAxisValues(body2Positions, 'z')
-  ];
-
-  const calculateBounds = (values) => ({
-    min: Math.min(...values),
-    max: Math.max(...values)
-  });
-
-  const xBounds = calculateBounds(allXPositions);
-  const yBounds = calculateBounds(allYPositions);
-  const zBounds = calculateBounds(allZPositions);
-
-  return {
-    minX: xBounds.min,
-    maxX: xBounds.max,
-    minY: yBounds.min,
-    maxY: yBounds.max,
-    minZ: zBounds.min,
-    maxZ: zBounds.max
-  };
-};
-
-const extractData = (data) => {
-  const result = {
-    body1Positions: [],
-    body1Velocities: [],
-    body2Positions: [],
-    body2Velocities: [],
-    timePoints: []
-  };
-
-  data.forEach(([_, time, bodiesData]) => {
-    result.timePoints.push(time);
-
-    Object.entries(bodiesData).forEach(([bodyKey, bodyData]) => {
-      const lowerKey = bodyKey.toLowerCase();
-      if (bodyData.position && bodyData.velocity) {
-        result[`${lowerKey}Positions`].push({
-          time,
-          x: bodyData.position.x,
-          y: bodyData.position.y,
-          z: bodyData.position.z
-        });
-
-        result[`${lowerKey}Velocities`].push({
-          time,
-          x: bodyData.velocity.x,
-          y: bodyData.velocity.y,
-          z: bodyData.velocity.z
-        });
-      }
-    });
-  });
-
-  return result;
-};
-
-const preparePlotData = ({extractedData, currentTimeIndex, showVelocityVectors, velocityScale}) => {
-  const { 
-    body1Positions, 
-    body2Positions, 
-    body1Velocities, 
-    body2Velocities,
-    timePoints
-  } = extractedData
-  
-  // Body1 position trace
-  const body1PositionTrace = {
-    type: 'scatter3d',
-    mode: 'lines+markers',
-    name: 'Body1 Orbit',
-    x: body1Positions.map(p => p.x),
-    y: body1Positions.map(p => p.y),
-    z: body1Positions.map(p => p.z),
-    marker: {
-      size: 5,
-      color: 'blue',
-      opacity: 0.5
-    },
-    line: {
-      color: 'blue',
-      width: 2,
-      opacity: 0.5
-    }
-  };
-  
-  // Body2 position trace
-  const body2PositionTrace = {
-    type: 'scatter3d',
-    mode: 'lines+markers',
-    name: 'Body2 Orbit',
-    x: body2Positions.map(p => p.x),
-    y: body2Positions.map(p => p.y),
-    z: body2Positions.map(p => p.z),
-    marker: {
-      size: 5,
-      color: 'red',
-      opacity: 0.5
-    },
-    line: {
-      color: 'red',
-      width: 2,
-      opacity: 0.5
-    }
-  };
-  
-  // Current position markers
-  const timeIndex = currentTimeIndex % timePoints.length;
-  
-  const currentPositions = [];
-  
-  if (body1Positions.length > timeIndex) {
-    const position = body1Positions[timeIndex];
-    currentPositions.push({
-      type: 'scatter3d',
-      mode: 'markers',
-      name: 'Body1 Current',
-      x: [position.x],
-      y: [position.y],
-      z: [position.z],
-      marker: {
-        size: 10,
-        symbol: 'circle',
-        opacity: 0.8
-      }
-    });
-  }
-  
-  if (body2Positions.length > timeIndex) {
-    const position = body2Positions[timeIndex];
-    currentPositions.push({
-      type: 'scatter3d',
-      mode: 'markers',
-      name: 'Body2 Current',
-      x: [position.x],
-      y: [position.y],
-      z: [position.z],
-      marker: {
-        size: 10,
-        symbol: 'circle',
-        opacity: 0.8
-      }
-    });
-  }
-  
-  // Add velocity vectors if enabled
-  const velocityArrows = [];
-  
-  if (showVelocityVectors) {
-    // Body1 velocity
-    if (body1Positions.length > timeIndex && body1Velocities.length > timeIndex) {
-      const position = body1Positions[timeIndex];
-      const velocity = body1Velocities[timeIndex];
-      
-      velocityArrows.push({
-        type: 'scatter3d',
-        mode: 'lines+markers',
-        name: 'Body1 Velocity',
-        x: [position.x, position.x + velocity.x * velocityScale],
-        y: [position.y, position.y + velocity.y * velocityScale],
-        z: [position.z, position.z + velocity.z * velocityScale],
-        line: {
-          width: 5
-        },
-        marker: {
-          size: 3,
-          symbol: 'diamond'
-        }
-      });
-    }
-    
-    // Body2 velocity
-    if (body2Positions.length > timeIndex && body2Velocities.length > timeIndex) {
-      const position = body2Positions[timeIndex];
-      const velocity = body2Velocities[timeIndex];
-      
-      velocityArrows.push({
-        type: 'scatter3d',
-        mode: 'lines+markers',
-        name: 'Body2 Velocity',
-        x: [position.x, position.x + velocity.x * velocityScale],
-        y: [position.y, position.y + velocity.y * velocityScale],
-        z: [position.z, position.z + velocity.z * velocityScale],
-        line: {
-          width: 5
-        },
-        marker: {
-          size: 3,
-          symbol: 'diamond'
-        }
-      });
-    }
-  }
-  
-  return [
-    body1PositionTrace, 
-    body2PositionTrace, 
-    ...currentPositions,
-    ...velocityArrows
-  ];
-};
+import { calculateMinMax } from 'utilities';
 
 const OrbitalVisualization = () => {
   const [data, setData] = useState([]);
   const [layout, setLayout] = useState({});
   const [showVelocityVectors, setShowVelocityVectors] = useState(true);
-  const [currentTimeIndex, setCurrentTimeIndex] = useState(0);
-  const [playInterval, setPlayInterval] = useState(null);
-  const { simulationData} = useSimulationContext();
-  const velocityScale = 500
+  const { simulationData, plotData, currentPlotData, isPlaying, togglePlay, reset, previous, next  } = useSimulationContext();
 
   useEffect(() => {
-    return () => {
-      if (playInterval) {
-        clearInterval(playInterval);
-      }
-    };
-  }, [playInterval]);
-
-  useEffect(() => {
-    if (!simulationData) return;
-    const extractedData = extractData(simulationData);
-    const plotData = preparePlotData({extractedData, currentTimeIndex, showVelocityVectors, velocityScale});
+    if (!plotData && !simulationData) return;
+    const {body1Positions, body2Positions} = plotData
+    const { currentPositions, currentVelocities} = currentPlotData
+    setData([
+      body1Positions,
+      body2Positions,
+      ...currentPositions,
+      ...(showVelocityVectors ? currentVelocities : [])
+    ]);
     
-    setData(plotData);
-    
-    const { minX, maxX, minY, maxY, minZ, maxZ } = calculateMinMax(extractedData);
+    // const { minX, maxX, minY, maxY, minZ, maxZ } = calculateMinMax({body1Positions, body2Positions});
     
     // Set the 3D layout
     setLayout({
@@ -257,15 +35,15 @@ const OrbitalVisualization = () => {
         },
         xaxis: {
           title: 'X Position',
-          range: [minX - 5, maxX + 5]
+          // range: [minX - 5, maxX + 5]
         },
         yaxis: {
           title: 'Y Position',
-          range: [minY - 5, maxY + 5]
+          // range: [minY - 5, maxY + 5]
         },
         zaxis: {
           title: 'Z Position',
-          range: [minZ - 5, maxZ + 5]
+          // range: [minZ - 5, maxZ + 5]
         },
         camera: {
           eye: { x: 1.5, y: 1.5, z: 1.5 }
@@ -277,54 +55,29 @@ const OrbitalVisualization = () => {
         y: 1
       }
     });
-  }, [showVelocityVectors, velocityScale, currentTimeIndex, simulationData]);
-
-  // Advance to next time point
-  const handleNextTime = () => {
-    setCurrentTimeIndex(prev => (prev === 0 ? 2 : (prev + 1) % simulationData.length));
-  };
-
-  // Go to previous time point
-  const handlePreviousTime = () => {
-    setCurrentTimeIndex(prev => (prev > 0 ? prev - 1 : simulationData.length - 1));
-  };
+  }, [showVelocityVectors, currentPlotData, simulationData]);
+  
 
   // Toggle velocity vectors
   const toggleVelocityVectors = () => {
     setShowVelocityVectors(prev => !prev);
   };
 
-  const handlePlay = () => {
-    if (playInterval) {
-      clearInterval(playInterval);
-      setPlayInterval(null);
-    } else {
-      const interval = setInterval(() => {
-        setCurrentTimeIndex(prev => (prev + 1) % simulationData.length); // loop back
-      }, 100);
-      setPlayInterval(interval);
-    }
-  };
-
-  const handleReset = () => {
-    setCurrentTimeIndex(0);
-  };
-
   return (
     <Card>
     <Flex direction="column" align="center">
       <Flex direction="row" align="center">
-        <Button onClick={handlePlay}>
-          {playInterval ? '❚❚' : '▶'}
+        <Button onClick={togglePlay}>
+          {isPlaying ? '❚❚' : '▶'}
         </Button>
-        <Button onClick={handleReset}>Reset</Button>
-        <Button onClick={handlePreviousTime}>{'<'}</Button>
-        <Button onClick={handleNextTime}>{'>'}</Button>
+        <Button onClick={reset}>Reset</Button>
+        <Button onClick={previous}>{'<'}</Button>
+        <Button onClick={next}>{'>'}</Button>
         <Button onClick={toggleVelocityVectors}>
           {showVelocityVectors ? 'Hide Velocity' : 'Show Velocity'}
         </Button>
       </Flex>
-      <Box>
+      <Box style={{ width: '100%', height: '100%' }}>
         <Plot
           data={data}
           layout={layout}
