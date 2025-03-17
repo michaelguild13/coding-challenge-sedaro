@@ -1,9 +1,9 @@
 import { Flex, Separator } from '@radix-ui/themes';
-import { OrbitalVisualization } from 'molecules/OrbitalVisualization';
-import { PlotPosition } from 'molecules/PlotPosition';
-import { PlotVelocity } from 'molecules/PlotVelocity';
-import { Link } from 'react-router-dom';
-import { Routes } from 'routes';
+import { Drawer } from 'molecules/Drawer';
+import { OrbitalVisualization } from 'Plots/OrbitalVisualization';
+import { PlotPosition } from 'Plots/PlotPosition';
+import { PlotVelocity } from 'Plots/PlotVelocity';
+import SimulateForm from 'SimulateForm';
 
 const App = () => {
   return (
@@ -13,13 +13,16 @@ const App = () => {
         width: '100vw',
         margin: '0 auto',
       }}
-    >
-      <Flex direction="column" m="4" width="100%" justify="center" align="center">
-        <Link to={Routes.FORM}>Define new simulation parameters</Link>
+    > 
+    <Drawer open={true}>
+      <SimulateForm/>
+    </Drawer>
+      <Flex direction="column"justify="center" align="center">
         <Separator size="4" my="5" />
-        <Flex direction="row" width="100%" justify="center">
-          <PlotPosition/>
-          <PlotVelocity/>
+        <Flex direction="row" width="100%" height={'calc(100vh - 100px)'} justify="center">
+          {/* <PlotPosition/> */}
+          {/* <PlotVelocity/> */}
+          
           <OrbitalVisualization />          
         </Flex>
       </Flex>

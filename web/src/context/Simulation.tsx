@@ -1,4 +1,4 @@
-import { DataPoint, getSimulation, PlottedAgentData } from "Api";
+import { DataPoint, getSimulation, PlottedAgentData, postSimulation } from "Api";
 import {
   createContext,
   useContext,
@@ -18,6 +18,9 @@ interface SimulationContextType {
   reset: () => void;
   next: () => void;
   previous:() => void;
+  setCurrentTimeIndex: (newState: number) => void
+  timeMax: number;
+  timeCurrent: number;
   isPlaying: boolean
   simulationData: SimulationData | undefined;
   plotData: ReturnType<typeof getPlotData> | undefined;
@@ -35,21 +38,34 @@ export const SimulationProvider = ({ children }: { children: ReactNode }) => {
   const [currentTimeIndex, setCurrentTimeIndex] = useState(0);
   const [currentPlotData, setCurrentPlotData] = useState<ReturnType<typeof getCurrentPlotData> | null>(null);
   const [playInterval, setPlayInterval] = useState<number | null>(null);
+
+  const isPlaying = !!playInterval
+  const timeMax = simulationData?.timePoints.length || 0
+  const timeCurrent = currentTimeIndex
   
-  const getSimulationData = useCallback(async () => {
-    try {
-      const data = await getSimulation();
-      const processedData = processData(data);
+  const setDataState = (data) => {
+    const processedData = processData(data);
       setSimulationData(processedData);
       setPlotData(getPlotData(processedData))
       setCurrentPlotData(getCurrentPlotData({data: processedData, currentTimeIndex}))
+  }
+
+  const getSimulationData = useCallback(async () => {
+    try {
+      const data = await getSimulation();
+      setDataState(data)
     } catch (error) {
       console.error("Error fetching data:", error);
     }
   }, []);
 
-  const newSimulation = useCallback((newState: any) => {
-    // Placeholder for newSimulation logic
+  const newSimulation = useCallback( async (formData: any) => {
+    try {
+      const data = await postSimulation(formData);
+      setDataState(data) 
+    } catch (error) {
+      console.error("Error posting data:", error);
+    }
   }, []);
 
   const togglePlay = useCallback(() => {
@@ -77,7 +93,7 @@ export const SimulationProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [playInterval, simulationData]);
 
-  const isPlaying = !!playInterval
+  
 
   const reset = useCallback(() => {
       setCurrentTimeIndex(0);
@@ -85,13 +101,13 @@ export const SimulationProvider = ({ children }: { children: ReactNode }) => {
 
   const next = useCallback(() => {
     if (simulationData?.timePoints) {
-      setCurrentTimeIndex((prev) => (prev + 1) % simulationData.timePoints.length);
+      setCurrentTimeIndex((prev) => (prev + 1) % timeMax);
     }
   }, [simulationData]);
 
   const previous = useCallback(() => {
     if (simulationData?.timePoints) {
-      setCurrentTimeIndex((prev) => (prev > 0 ? prev - 1 : simulationData.timePoints.length - 1));
+      setCurrentTimeIndex((prev) => (prev > 0 ? prev - 1 : timeMax - 1));
     }
   }, [simulationData]);
 
@@ -106,7 +122,10 @@ export const SimulationProvider = ({ children }: { children: ReactNode }) => {
       togglePlay,
       reset,
       next,
-      previous
+      previous,
+      timeMax,
+      timeCurrent,
+      setCurrentTimeIndex
     }),
     [
       simulationData,
@@ -118,7 +137,10 @@ export const SimulationProvider = ({ children }: { children: ReactNode }) => {
       togglePlay,
       reset,
       next,
-      previous
+      previous,
+      timeMax,
+      timeCurrent,
+      setCurrentTimeIndex
     ]
   );
 

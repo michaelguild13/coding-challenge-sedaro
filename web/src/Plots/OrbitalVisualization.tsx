@@ -3,10 +3,12 @@ import { ButtonNext } from "atoms/ButtonNext";
 import { ButtonPlay } from "atoms/ButtonPlay";
 import { ButtonPrevious } from "atoms/ButtonPrevious";
 import { ButtonReset } from "atoms/ButtonReset";
+import { SliderTimeline } from "atoms/SliderTimeline";
 import { useSimulationContext } from "context/Simulation";
 import { useState, useEffect } from "react";
 import Plot from "react-plotly.js";
 import { calculateMinMax } from "utilities";
+import { PlayerControls } from "./PlayerControls";
 
 export const OrbitalVisualization = () => {
   const { simulationData, plotData, currentPlotData } = useSimulationContext();
@@ -49,7 +51,7 @@ export const OrbitalVisualization = () => {
     setLayout({
       title: "Orbital Visualization",
       autosize: true,
-      height: "100vh",
+    
       scene: {
         aspectmode: "manual",
         aspectratio: {
@@ -75,7 +77,7 @@ export const OrbitalVisualization = () => {
       },
       margin: { l: 0, r: 0, b: 0, t: 50 },
       legend: {
-        x: 0,
+        x: 1,
         y: 1,
       },
     });
@@ -87,29 +89,32 @@ export const OrbitalVisualization = () => {
   };
 
   return (
-    <Card>
-      <Flex direction="column" align="center">
-        <Flex direction="row" align="center">
-          <ButtonPlay />
-          <ButtonReset />
-          <ButtonPrevious />
-          <ButtonNext />
+      <>
+        <Box style={{position: "absolute", zIndex: 1, bottom: 70, right: 10}}>
+          <Flex>
+          <Card style={{background: 'black', width: 500}}>
+          <PlayerControls />
+          </Card>
+          <Card style={{background: 'black', marginLeft: '12px', width: 300}}>
+          <Flex gap={'6px'} >
           <Button onClick={toggleVelocityVectors}>
             {showVelocityVectors ? "Hide Velocity" : "Show Velocity"}
           </Button>
           <Button onClick={() => setShowCurrentOnly((prev) => !prev)}>
             {showCurrentOnly ? "Show All" : "Show Current Only"}
           </Button>
-        </Flex>
-        <Box style={{ width: "100%", height: "100%" }}>
+          </Flex>
+          </Card>
+          </Flex>
+        </Box>
+        <Box style={{ width: "100%", height: "100%", background: 'red' }}>
           <Plot
             data={data}
             layout={layout}
             config={{ responsive: true }}
-            style={{ width: "100%", height: "100%" }}
+            style={{ width: "100%", height: "100%", zIndex: 0 }}
           />
         </Box>
-      </Flex>
-    </Card>
+        </>
   );
 };
