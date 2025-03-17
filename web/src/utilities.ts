@@ -1,55 +1,17 @@
 import { DataPoint, PlottedAgentData, PlottedFrame, Vector } from "Api";
 
-// frames: [
-//   {
-//     name: 'frame-0',
-//     data: [
-//       {
-//         x: [0],
-//         y: [0],
-//         z: [0],
-//       },
-//       {
-//         x: [1],
-//         y: [1],
-//         z: [1],
-//       },
-//     ],
-//     traces: [0, 1], // Updates only the first two traces in the main data array
-//   },
-// ];
-// const frame = {
-//   name: "frame-0", // Unique identifier for the frame
-//   data: [
-//     {
-//       type: "scatter3d",
-//       mode: "markers",
-//       name: "Body1",
-//       x: [-0.73], // Updated X position for Body1
-//       y: [0],     // Updated Y position for Body1
-//       z: [0],     // Updated Z position for Body1
-//       marker: {
-//         size: 8,
-//         color: "blue",
-//       },
-//     },
-//   ],
-//   traces: [0], // Index of the trace in the main `data` array corresponding to Body1
-// };
-
 const baseFrame = (name: string) => ({
   name,
   data: [],
   traces: [],
 });
 
-const baseData = (name: string, vector: Vector) => {
-  const { x, y, z } = vector;
+const baseData = (name: string, vector?: Vector) => {
   return {
     name,
-    x: [x],
-    y: [y],
-    z: [z],
+    x: [vector?.x],
+    y: [vector?.y],
+    z: [vector?.z],
     type: "scatter3d",
     mode: "lines+markers",
     marker: { size: 3 },
@@ -61,36 +23,40 @@ export const processFramesData = (
   data: DataPoint[]
 ): [PlottedAgentData[], PlottedAgentData[]] => {
   const frameData: PlottedFrame[] = []
+  const initData = []
   data.forEach(([timeStart, timeEnd, frames]: [number, number, Record<string, { position: Vector; velocity: Vector }>], index) => {
-    if (index > 0) {
-      return;
-    }
+    // if(index > 10) return
     const newFrame= baseFrame(`frame-${index}`);
     const frameKeys = Object.keys(frames); // Body1, Body2
-
+     
     frameKeys.forEach((frameKey) => {
       const { position, velocity } = frames[frameKey] as { position: Vector; velocity: Vector };
       newFrame.data.push(baseData(`${frameKey} position`, position));
       newFrame.data.push(baseData(`${frameKey} velocity`, velocity));
+      if( frameKey === "Body1") {
+        newFrame.traces.push(0)
+        newFrame.traces.push(1)
+      }
+      if( frameKey === "Body2") {
+        newFrame.traces.push(2)
+        newFrame.traces.push(3)
+      }
+      // Only add initial data once
+      if (index === 0) {
+        initData.push(baseData(`${frameKey} position`, position));
+        initData.push(baseData(`${frameKey} velocity`, velocity));
+      }
     });
+    
     frameData.push(newFrame);
   });
-  return frameData
+  console.log(frameData);
+  return { data: initData, frames: frameData}
 };
 
 export const processData = (
   data: DataPoint[]
 ): [PlottedAgentData[], PlottedAgentData[]] => {
-  const baseData = (name: string) => ({
-    name,
-    x: [],
-    y: [],
-    z: [],
-    type: "scatter3d",
-    mode: "lines+markers",
-    marker: { size: 4 },
-    line: { width: 2 },
-  });
   const updatedPositionData: PlottedFrame = {};
   const updatedVelocityData: PlottedFrame = {};
 
