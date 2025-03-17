@@ -1,14 +1,10 @@
 import { Box, Button, Card, Flex } from "@radix-ui/themes";
-import { ButtonNext } from "atoms/ButtonNext";
-import { ButtonPlay } from "atoms/ButtonPlay";
-import { ButtonPrevious } from "atoms/ButtonPrevious";
-import { ButtonReset } from "atoms/ButtonReset";
-import { SliderTimeline } from "atoms/SliderTimeline";
 import { useSimulationContext } from "context/Simulation";
 import { useState, useEffect } from "react";
 import Plot from "react-plotly.js";
 import { calculateMinMax } from "utilities";
 import { PlayerControls } from "./PlayerControls";
+import { CardCurrentData } from "molecules/CardCurrentData";
 
 export const OrbitalVisualization = () => {
   const { simulationData, plotData, currentPlotData } = useSimulationContext();
@@ -16,6 +12,7 @@ export const OrbitalVisualization = () => {
   const [layout, setLayout] = useState({});
   const [showVelocityVectors, setShowVelocityVectors] = useState(true);
   const [showCurrentOnly, setShowCurrentOnly] = useState(false);
+  const [showMetaData, setShowMetaData] = useState(false);
 
   useEffect(() => {
     if (!plotData && !simulationData) return;
@@ -51,7 +48,7 @@ export const OrbitalVisualization = () => {
     setLayout({
       title: "Orbital Visualization",
       autosize: true,
-    
+
       scene: {
         aspectmode: "manual",
         aspectratio: {
@@ -89,32 +86,47 @@ export const OrbitalVisualization = () => {
   };
 
   return (
-      <>
-        <Box style={{position: "absolute", zIndex: 1, bottom: 70, right: 10}}>
-          <Flex>
-          <Card style={{background: 'black', width: 500}}>
-          <PlayerControls />
+    <>
+      <Box
+        style={{
+          display: showMetaData ? "block" : "none",
+          backgroundColor: "black",
+          position: "absolute",
+          zIndex: 1,
+          top: 300,
+          right: 10,
+        }}
+      >
+        <CardCurrentData />
+      </Box>
+      <Box style={{ position: "absolute", zIndex: 1, bottom: 10, right: 10 }}>
+        <Flex>
+          <Card style={{ background: "black", width: 500 }}>
+            <PlayerControls />
           </Card>
-          <Card style={{background: 'black', marginLeft: '12px', width: 300}}>
-          <Flex gap={'6px'} >
-          <Button onClick={toggleVelocityVectors}>
-            {showVelocityVectors ? "Hide Velocity" : "Show Velocity"}
-          </Button>
-          <Button onClick={() => setShowCurrentOnly((prev) => !prev)}>
-            {showCurrentOnly ? "Show All" : "Show Current Only"}
-          </Button>
-          </Flex>
+          <Card style={{ background: "black", marginLeft: "12px", width: 400 }}>
+            <Flex gap={"6px"}>
+              <Button onClick={toggleVelocityVectors}>
+                {showVelocityVectors ? "○ Velocity" : "⦸ Velocity"}
+              </Button>
+              <Button onClick={() => setShowCurrentOnly((prev) => !prev)}>
+                {showCurrentOnly ? "⦸ Trace" : "○ Trace"}
+              </Button>
+              <Button onClick={() => setShowMetaData((prev) => !prev)}>
+                {showMetaData ? "○ Metadata" : "⦸ Metadata"}
+              </Button>
+            </Flex>
           </Card>
-          </Flex>
-        </Box>
-        <Box style={{ width: "100%", height: "100%", background: 'red' }}>
-          <Plot
-            data={data}
-            layout={layout}
-            config={{ responsive: true }}
-            style={{ width: "100%", height: "100%", zIndex: 0 }}
-          />
-        </Box>
-        </>
+        </Flex>
+      </Box>
+      <Box style={{ width: "100%", height: "100%", background: "red" }}>
+        <Plot
+          data={data}
+          layout={layout}
+          config={{ responsive: true }}
+          style={{ width: "100%", height: "100%", zIndex: 0 }}
+        />
+      </Box>
+    </>
   );
 };

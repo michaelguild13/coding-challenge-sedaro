@@ -19,6 +19,7 @@ interface SimulationContextType {
   next: () => void;
   previous:() => void;
   setCurrentTimeIndex: (newState: number) => void
+  isLoading: boolean,
   timeMax: number;
   timeCurrent: number;
   isPlaying: boolean
@@ -32,6 +33,7 @@ const SimulationContext = createContext<SimulationContextType | undefined>(
 );
 
 export const SimulationProvider = ({ children }: { children: ReactNode }) => {
+  const [isLoading, setIsLoading] = useState(false)
   const [simulationData, setSimulationData] = useState<SimulationData | undefined>(undefined);
   const [plotData, setPlotData] = useState<ReturnType<typeof getPlotData> | undefined>(undefined)
   // play state
@@ -43,30 +45,35 @@ export const SimulationProvider = ({ children }: { children: ReactNode }) => {
   const timeMax = simulationData?.timePoints.length || 0
   const timeCurrent = currentTimeIndex
   
-  const setDataState = (data) => {
+  const setDataState = (data: DataPoint[]) => {
     const processedData = processData(data);
       setSimulationData(processedData);
       setPlotData(getPlotData(processedData))
       setCurrentPlotData(getCurrentPlotData({data: processedData, currentTimeIndex}))
+      setIsLoading(false)
   }
 
   const getSimulationData = useCallback(async () => {
+    setIsLoading(true)
     try {
       const data = await getSimulation();
       setDataState(data)
     } catch (error) {
       console.error("Error fetching data:", error);
+      setIsLoading(false)
     }
-  }, []);
+  }, [isLoading]);
 
   const newSimulation = useCallback( async (formData: any) => {
+    setIsLoading(true)
     try {
       const data = await postSimulation(formData);
       setDataState(data) 
     } catch (error) {
       console.error("Error posting data:", error);
+      setIsLoading(false)
     }
-  }, []);
+  }, [isLoading]);
 
   const togglePlay = useCallback(() => {
     if (playInterval) {
@@ -125,7 +132,8 @@ export const SimulationProvider = ({ children }: { children: ReactNode }) => {
       previous,
       timeMax,
       timeCurrent,
-      setCurrentTimeIndex
+      setCurrentTimeIndex,
+      isLoading
     }),
     [
       simulationData,
@@ -140,7 +148,8 @@ export const SimulationProvider = ({ children }: { children: ReactNode }) => {
       previous,
       timeMax,
       timeCurrent,
-      setCurrentTimeIndex
+      setCurrentTimeIndex,
+      isLoading
     ]
   );
 

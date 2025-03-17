@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button, Text } from '@radix-ui/themes';
 
 export const Drawer: React.FC<{ open?: boolean; children?: React.ReactNode }> = ({ children, open = false }) => {
@@ -10,7 +10,7 @@ export const Drawer: React.FC<{ open?: boolean; children?: React.ReactNode }> = 
 
   const drawerRootStyles: React.CSSProperties = {
     position: 'relative',
-    zIndex: 1,
+    zIndex: 2,
   };
 
   const drawerContentStyles: React.CSSProperties = {
@@ -35,7 +35,7 @@ export const Drawer: React.FC<{ open?: boolean; children?: React.ReactNode }> = 
   const drawerTriggerStyles: React.CSSProperties = {
     position: 'fixed',
     top: 80,
-    left: isOpen ? '200px' : 0,
+    left: isOpen ? '200px' : '10px',
     padding: '8px',
     cursor: 'pointer',
     transition: 'all 500ms ease-out',
@@ -46,6 +46,10 @@ export const Drawer: React.FC<{ open?: boolean; children?: React.ReactNode }> = 
     padding: '8px',
     cursor: 'pointer',
   };
+
+  useEffect( () => {
+    setIsOpen(open)
+  },[open])
 
   return (
     <div style={drawerRootStyles}>

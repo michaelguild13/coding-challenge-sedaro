@@ -1,32 +1,30 @@
-import { Flex, Separator } from '@radix-ui/themes';
+import { Flex } from '@radix-ui/themes';
+import { useSimulationContext } from 'context/Simulation';
 import { Drawer } from 'molecules/Drawer';
 import { OrbitalVisualization } from 'Plots/OrbitalVisualization';
-import { PlotPosition } from 'Plots/PlotPosition';
-import { PlotVelocity } from 'Plots/PlotVelocity';
-import SimulateForm from 'SimulateForm';
+import { useEffect, useState } from 'react';
+import SimulateForm from 'molecules/SimulateForm';
 
 const App = () => {
+  const { isLoading } = useSimulationContext()
+  const [open, setOpen] = useState(false)
+
+  useEffect(()=>{
+    if (isLoading) setOpen(false)
+  },[isLoading])
+
   return (
-    <div
-      style={{
-        height: '100vh',
-        width: '100vw',
-        margin: '0 auto',
-      }}
-    > 
-    <Drawer open={true}>
+    <>
+    <Drawer open={open}>
       <SimulateForm/>
     </Drawer>
-      <Flex direction="column"justify="center" align="center">
-        <Separator size="4" my="5" />
-        <Flex direction="row" width="100%" height={'calc(100vh - 100px)'} justify="center">
+      
+        <Flex direction="row" width="100%" height={'calc(100vh - 60px)'} justify="center">
           {/* <PlotPosition/> */}
           {/* <PlotVelocity/> */}
-          
           <OrbitalVisualization />          
         </Flex>
-      </Flex>
-    </div>
+        </>
   );
 };
 

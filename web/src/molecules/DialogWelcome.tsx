@@ -3,7 +3,7 @@ import { DialogSimple } from "./DialogSimple";
 
 export const DialogWelcome = () => {
   return (
-    <DialogSimple buttonLabel="About" headingLabel="Welcome!" open={true}>
+    <DialogSimple buttonLabel="About" headingLabel="🎉 Welcome!" open={true}>
       <Box>
         <Text as="p" size="3" mb="3">
           This interactive tool allows you to visualize and explore orbital
@@ -23,7 +23,7 @@ export const DialogWelcome = () => {
         </Text>
         <Card>
           <Heading size="4" mb="2">
-            Key Features
+          🔑 Key Features
           </Heading>
           <Text as="p" size="2" mb="1">
             • <strong>Run New Simulations:</strong> Generate and explore
@@ -40,6 +40,14 @@ export const DialogWelcome = () => {
           <Text as="p" size="2" mb="3">
             • <strong>Interactive Visualization:</strong> Rotate, zoom, and pan
             the 3D view using your mouse
+          </Text>
+        </Card>
+        <Card>
+          <Heading size="4" mb="2">
+          ⚠️ Known Issues:
+          </Heading>
+          <Text as="p" size="2" mb="3">
+            • More Velocity points vs positioning, causes the player to continue though with no current point.
           </Text>
         </Card>
       </Box>

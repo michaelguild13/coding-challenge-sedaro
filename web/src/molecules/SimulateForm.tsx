@@ -3,7 +3,7 @@ import { Button, Card, Flex, Heading, Separator, TextField, Grid, Box, Text } fr
 import { DataValue, FormData, postSimulation } from 'Api';
 import { useSimulationContext } from 'context/Simulation';
 import _ from 'lodash';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 
 const initFormValues = {
   Body1: { position: {x: -0.73, y: 0, z: 0}, velocity: {x: 0, y: -0.0015, z: 0}, mass: 1 },
@@ -13,10 +13,17 @@ const initFormValues = {
 const SimulateForm: React.FC = () => {
   const [formData, setFormData] = useState<FormData>(initFormValues);
   const { newSimulation } = useSimulationContext()
+  
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
       const { name, value } = e.target;
-      const newValue = value === '' ? 0 : parseFloat(value); // Ensure value is always a number
-      setFormData((prev) => _.set({ ...prev }, name, newValue));
+      const newValue = value === '' ? 0 : parseFloat(value);
+      
+      // Create a deep copy of the previous state to ensure proper updates
+      setFormData(prev => {
+        const newState = _.cloneDeep(prev);
+        _.set(newState, name, newValue);
+        return newState;
+      });
     }, []);
 
   const handleSubmit = useCallback(
@@ -29,14 +36,19 @@ const SimulateForm: React.FC = () => {
         console.error('Error:', error);
       }
     },
-    [formData]
+    [formData, newSimulation]
   );
+
+  const resetForm = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setFormData(_.cloneDeep(initFormValues));
+  }, []);
 
   // Helper component for vector input (position or velocity)
   interface VectorInputProps {
       bodyName: keyof FormData;
-      vectorType: string;
-      values: { x: DataValue; y: DataValue; z: DataValue }; // Match the DataValue type
+      vectorType: 'position' | 'velocity';
+      values: { x: DataValue; y: DataValue; z: DataValue };
     }
 
   const VectorInput: React.FC<VectorInputProps> = ({ bodyName, vectorType, values }) => (
@@ -50,7 +62,7 @@ const SimulateForm: React.FC = () => {
               type="number"
               id={`${bodyName}.${vectorType}.${axis}`}
               name={`${bodyName}.${vectorType}.${axis}`}
-              value={values[axis]}
+              value={values[axis].toString()} // Ensure it's a string for the input
               onChange={handleChange}
               required
               step="0.001"
@@ -83,7 +95,7 @@ const SimulateForm: React.FC = () => {
           type="number"
           id={`${bodyName}.mass`}
           name={`${bodyName}.mass`}
-          value={formData[bodyName].mass}
+          value={formData[bodyName].mass.toString()} // Ensure it's a string for the input
           onChange={handleChange}
           required
           step="0.001"
@@ -106,8 +118,8 @@ const SimulateForm: React.FC = () => {
         <BodyInputs bodyName="Body2" />
         
         <Flex gap="3" mt="4" justify="between">
-          <Button onClick={()=> setFormData(initFormValues)}>
-            reset values
+          <Button onClick={resetForm}>
+            Reset Values
           </Button>
           <Button type="submit">
             Run Simulation
