@@ -1,4 +1,4 @@
-import { Box, Flex, Theme } from "@radix-ui/themes";
+import { Box, Flex, Text, Theme } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css";
 import React from "react";
 import ReactDOM from "react-dom/client";
@@ -34,9 +34,12 @@ root.render(
       radius="small"
     >
       <SimulationProvider>
-        <Flex style={{ height:'64px',backgroundColor: '#4c68bc', padding: '8px'}}>
+        <Flex style={{ height:'64px',backgroundColor: '#4c68bc', padding: '8px'}} >
           <Box>
             <img src={Logo} alt="Sedaro - Orbit Simulator" style={{height: '100%'}}/>
+          </Box>
+          <Box style={{margin: 'auto 10px'}}>
+            <Text size={'6'}>Orbital Simulation</Text>
           </Box>
         </Flex>
         <RouterProvider router={router} />
