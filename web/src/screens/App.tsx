@@ -9,14 +9,17 @@ const App = () => {
   const { isLoading } = useSimulationContext()
   const [open, setOpen] = useState(false)
 
-  useEffect(()=>{
-    if (isLoading) setOpen(false)
-  },[isLoading])
-
+  useEffect(() => {
+    if (isLoading) {
+      setOpen(false);
+    }
+  }, [isLoading]);
+  
   return (
     <>
     <Drawer open={open}>
       <SimulateForm/>
+      {isLoading}
     </Drawer>
       
         <Flex direction="row" width="100%" height={'calc(100vh - 60px)'} justify="center">
