@@ -8,7 +8,7 @@ export const DialogWelcome = () => {
         <Text as="p" size="3" mb="3">
           This interactive tool allows you to visualize and explore orbital
           mechanics in a 3D environment. You can observe how celestial bodies
-          interact through gravitational forces in space.
+          interact through gravitational forces in space. <a href="https://www.linkedin.com/in/michaelguild/" target="_blank">UI/UX by Michael Guild</a>
         </Text>
 
         <Separator size="4" my="3" />
